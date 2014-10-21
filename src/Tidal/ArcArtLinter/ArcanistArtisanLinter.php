@@ -9,7 +9,7 @@ class ArcanistArtisanLinter extends ArcanistExternalLinter {
 	private $phpcs_linter;
 
 	public function __construct() {
-		$self->phpcs_linter = New ArcanistPhpcsLinter();
+		$this->phpcs_linter = New ArcanistPhpcsLinter();
 	}
 
 	public function getInfoName() {
@@ -36,7 +36,7 @@ class ArcanistArtisanLinter extends ArcanistExternalLinter {
 	}
 
 	public function getMandatoryFlags() {
-		return array('--report=xml');
+		return array('inspect:sniff', '--report=xml', '-n');
 	}
 
 	public function getInstallInstructions() {
@@ -48,7 +48,9 @@ class ArcanistArtisanLinter extends ArcanistExternalLinter {
 	}
 
 	public function getDefaultBinary() {
-		return $this->getDeprecatedConfiguration('lint.phpcs_artisan.bin', 'artisan inspect:sniff');
+		$root = $this->getEngine()->getWorkingCopy()->getProjectRoot();
+		$path = Filesystem::resolvePath('artisan', $root);
+		return $this->getDeprecatedConfiguration('lint.phpcs_artisan.bin', $path);
 	}
 
 	public function getVersion() {
@@ -64,14 +66,20 @@ class ArcanistArtisanLinter extends ArcanistExternalLinter {
 	}
 
 	protected function parseLinterOutput($path, $err, $stdout, $stderr) {
-		return $self->phpcs_linter->parseLinterOutput($path, $err, $stdout, $stderr);
+		// artisan outputs some junk before the PHPCS output
+		// we need to strip that before passing the XML to PHPCS
+		$xml_pos = strpos($stdout, '<?xml');
+		$xml_end = strpos($stdout, '</phpcs>') + strlen('</phpcs>');
+		$clean_stdout = substr($stdout, $xml_pos, $xml_end - $xml_pos);
+
+		return $this->phpcs_linter->parseLinterOutput($path, $err, $clean_stdout, $stderr);
 	}
 
 	protected function getDefaultMessageSeverity($code) {
-		return $self->phpcs_linter->getDefaultMessageSeverity($code);
+		return $this->phpcs_linter->getDefaultMessageSeverity($code);
 	}
 
 	protected function getLintCodeFromLinterConfigurationKey($code) {
-		return $self->phpcs_linter->getLintCodeFromLinterConfigurationKey($code);
+		return $this->phpcs_linter->getLintCodeFromLinterConfigurationKey($code);
 	}
 }
