@@ -1,0 +1,21 @@
+{
+	"name": "tidal/arcanist-artisan-linter",
+	"description": "Integrates the artisan inspect:sniff command from BCA-Laravel-Inspect as a linter for Phabricator's Arcanist",
+	"keywords": [
+		"phabricator",
+		"arcanist",
+		"laravel",
+		"artisan",
+		"phpcs"
+	],
+	"license": "MIT",
+	"require": {
+		"php": ">=5.4.0",
+		"bca/laravel-inspect": ">=1.3.0"
+	},
+	"autoload": {
+		"psr-0": {
+			"Tidal\\ArcArtLinter": "src/"
+		}
+	}
+}
