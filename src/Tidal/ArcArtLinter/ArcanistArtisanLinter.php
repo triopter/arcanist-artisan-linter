@@ -9,8 +9,6 @@ class ArcanistArtisanLinter extends ArcanistExternalLinter {
 	private $phpcs_linter;
 
 	public function __construct() {
-		parent::__construct();
-
 		$self->phpcs_linter = New ArcanistPhpcsLinter();
 	}
 
