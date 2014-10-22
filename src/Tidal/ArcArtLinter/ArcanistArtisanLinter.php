@@ -50,6 +50,7 @@ class ArcanistArtisanLinter extends ArcanistExternalLinter {
 	public function getDefaultBinary() {
 		$root = $this->getEngine()->getWorkingCopy()->getProjectRoot();
 		$path = Filesystem::resolvePath('artisan', $root);
+
 		return $this->getDeprecatedConfiguration('lint.phpcs_artisan.bin', $path);
 	}
 
@@ -62,7 +63,18 @@ class ArcanistArtisanLinter extends ArcanistExternalLinter {
 	}
 
 	public function supportsReadDataFromStdin() {
-		return true;
+		return false;
+	}
+
+	protected function getPathArgumentForLinterFuture($path) {
+		// Artisan expects a relative path and appends it to the project root path
+		// Arcanist also prepends the project root path.
+		// doing so twice breaks everything, so strip it from Arcanist's copy
+		// before sending to Artisan
+		$root = $this->getEngine()->getWorkingCopy()->getProjectRoot();
+		$clean_path = str_replace($root . '/', '', $path);
+
+		return csprintf('--path=%s', $clean_path);
 	}
 
 	protected function parseLinterOutput($path, $err, $stdout, $stderr) {
